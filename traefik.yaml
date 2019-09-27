@@ -1,0 +1,33 @@
+entryPoints:
+  authenticated:
+    address: "127.0.0.1:10000"
+  web:
+    address: "127.0.0.1:80"
+http:
+  routers:
+    router0:
+      service: whoami
+      rule: "Host(\"localhost\")"
+      entryPoints: ['web']
+      middlewares:
+      - authsvc
+    router1:
+      service: whoami2
+      entryPoints: ['authenticated']
+      rule: "Host(\"localhost\")"
+  middlewares:
+    authsvc:
+      forwardAuth:
+        trustForwardHeader: true
+        authResponseHeaders:
+          - X-Forwarded-User
+        address: "http://authsvc/"
+  services:
+    whoami:
+      loadBalancer:
+        servers:
+        - url: "http://127.0.0.1:10000/"
+    whoami2:
+      loadBalancer:
+        servers:
+        - url: "http://whoami2/"

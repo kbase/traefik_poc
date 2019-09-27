@@ -1,0 +1,61 @@
+version: "3.3"
+
+services:
+  traefik:
+    image: "traefik:v2.0.0"
+    container_name: "traefik"
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  authsvc:
+    image: "jazzdd/alpine-flask"
+    image: "flaskrequests"
+    hostname: "authsvc"
+    volumes:
+      - "./app.py:/app/app.py"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    ports:
+      - "8000:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(\"localhost\")"
+      - "traefik.http.routers.authsvc.entrypoints=web"
+
+
+#  whoami:
+#    image: "containous/whoami"
+#    container_name: "whoami"
+#    hostname: "whoami"
+#    #ports:
+#    #  - "8080:80"
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.whoami.rule=Host(\"localhost\")"
+#      - "traefik.http.routers.whoami.entrypoints=web"
+#      - "traefik.http.routers.whoami.middlewares=authsvc"
+
+#  kkeller:
+#    image: "containous/whoami"
+#    container_name: "simple-kkeller"
+#    hostname: "kkeller"
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.kkeller.rule=Host(\"localhost\") && Headers(\"X-Forwarded-User\",\"kkeller\")"
+#      - "traefik.http.routers.kkeller.entrypoints=web"
+
+#  sychan:
+#    image: "containous/whoami"
+#    container_name: "simple-sychan"
+#    hostname: "sychan"
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.sychan.rule=Host(\"localhost\") && Headers(\"X-Forwarded-User\",\"sychan\")"
+#      - "traefik.http.routers.sychan.entrypoints=web"
