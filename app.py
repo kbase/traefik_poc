@@ -8,7 +8,7 @@ print("Starting up authentication/spawner service")
 reload_msg = """
 <html>
 <head>
-<META HTTP-EQUIV="refresh" CONTENT="2">
+<META HTTP-EQUIV="refresh" CONTENT="2;URL='/narrative'">
 </head>
 <body>
 Starting container - will reload in 2 seconds
@@ -24,7 +24,7 @@ def hello():
     if 'kbase_session' in flask.request.cookies:
         print("Got a request with cookie ", flask.request.cookies['kbase_session'])
         token = flask.request.cookies['kbase_session']
-        r = requests.get("https://kbase.us/services/auth/api/V2/token", headers={'Authorization': token})
+        r = requests.get("https://ci.kbase.us/services/auth/api/V2/token", headers={'Authorization': token})
         authresponse = r.json()
         if r.status_code == 200:
             username = authresponse['user']
@@ -35,7 +35,9 @@ def hello():
             labels["traefik.enable"] = "True"
             labels["traefik.http.routers." + username + ".rule"] = "Host(\"localhost\") && HeadersRegexp(\"Cookie\",\""+cookie+"\")"
             labels["traefik.http.routers." + username + ".entrypoints"] = "web"
-            container = client.containers.run('containous/whoami', detach=True, labels=labels, hostname=username,
+#            container = client.containers.run('containous/whoami', detach=True, labels=labels, hostname=username,
+#                                              auto_remove=True, name=username, network="traefik_poc_default")
+            container = client.containers.run('kbase/narrative', detach=True, labels=labels, hostname=username,
                                               auto_remove=True, name=username, network="traefik_poc_default")
             print(container.logs())
         else:
@@ -43,12 +45,7 @@ def hello():
             resp = flask.Response(msg + "\n", status=r.status_code)
     else:
         print("Got a request without kbase_session cookie ")
-        if 'backdoor' in flask.request.headers:
-            print("Got backdoor header")
-            resp = flask.Response("Ok", status=200)
-            resp.headers['X-Forwarded-User'] = flask.request.headers['backdoor']
-        else:
-            resp = flask.Response("No cookie\n", status=401)
+        resp = flask.Response("No cookie: requires kbase_session cookie from ci environment\n", status=401)
     return resp
 
 
