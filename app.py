@@ -8,10 +8,10 @@ print("Starting up authentication/spawner service")
 reload_msg = """
 <html>
 <head>
-<META HTTP-EQUIV="refresh" CONTENT="2;URL='/narrative'">
+<META HTTP-EQUIV="refresh" CONTENT="5;URL='/narrative'">
 </head>
 <body>
-Starting container - will reload in 2 seconds
+Starting container - will reload in 5 seconds
 </body>
 </html>
 """
