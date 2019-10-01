@@ -8,7 +8,7 @@ print("Starting up authentication/spawner service")
 reload_msg = """
 <html>
 <head>
-<META HTTP-EQUIV="refresh" CONTENT="5;URL='/narrative'">
+<META HTTP-EQUIV="refresh" CONTENT="5;URL='/narrative/{}'">
 </head>
 <body>
 Starting container - will reload in 5 seconds
@@ -18,8 +18,8 @@ Starting container - will reload in 5 seconds
 app = flask.Flask(__name__)
 
 
-@app.route('/')
-def hello():
+@app.route('/narrative/<path:narrative>')
+def hello(narrative):
     # resp = flask.Response("Bad auth response",status=404)
     if 'kbase_session' in flask.request.cookies:
         print("Got a request with cookie ", flask.request.cookies['kbase_session'])
@@ -28,12 +28,12 @@ def hello():
         authresponse = r.json()
         if r.status_code == 200:
             username = authresponse['user']
-            resp = flask.Response(reload_msg, status=200)
+            resp = flask.Response(reload_msg.format(narrative), status=200)
             print("Starting container for user " + username)
             cookie = "kbase_session=" + flask.request.cookies['kbase_session']
             labels = dict()
             labels["traefik.enable"] = "True"
-            labels["traefik.http.routers." + username + ".rule"] = "Host(\"localhost\") && HeadersRegexp(\"Cookie\",\""+cookie+"\")"
+            labels["traefik.http.routers." + username + ".rule"] = "Host(\"localhost\") && PathPrefix(\"/narrative\") && HeadersRegexp(\"Cookie\",\""+cookie+"\")"
             labels["traefik.http.routers." + username + ".entrypoints"] = "web"
 #            container = client.containers.run('containous/whoami', detach=True, labels=labels, hostname=username,
 #                                              auto_remove=True, name=username, network="traefik_poc_default")
