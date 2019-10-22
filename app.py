@@ -1,6 +1,7 @@
 import flask
 import requests
 import docker
+import hashlib
 
 base_url = 'unix://var/run/docker.sock'
 client = docker.DockerClient(base_url=base_url)
@@ -30,8 +31,14 @@ def hello(narrative):
             username = authresponse['user']
             resp = flask.Response(reload_msg.format(narrative), status=200)
             print("Starting container for user " + username)
-            cookie = "kbase_session=" + flask.request.cookies['kbase_session']
-            labels = dict()
+            hashFunc = hashlib.md5()
+            hashFunc.update(token)
+            hashFunc.update(flask.request.remote_addr)
+            session = hashFunc.hexdigest()
+            cookie = "narrative_session=" + session
+            print("Routing based on " + cookie)
+            resp.set_cookie('narrative_session', session)
+            labels=dict()
             labels["traefik.enable"] = "True"
             labels["traefik.http.routers." + username + ".rule"] = "Host(\"localhost\") && PathPrefix(\"/narrative\") && HeadersRegexp(\"Cookie\",\""+cookie+"\")"
             labels["traefik.http.routers." + username + ".entrypoints"] = "web"
