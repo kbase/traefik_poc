@@ -19,16 +19,17 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   authsvc:
-    image: "jazzdd/alpine-flask"
-    image: "flaskrequests"
+    image: "kbase/traefik_authsvc:latest"
     hostname: "authsvc"
     volumes:
-      - "./app.py:/app/app.py"
+#      - "./app.py:/app/app.py"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     ports:
       - "8000:80"
+    environment:
+      - hostname=Stephens-MBP.dhcp.lbnl.us
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(\"localhost\") && PathPrefix(\"/narrative\")"
+      - "traefik.http.routers.authsvc.rule=Host(\"Stephens-MBP.dhcp.lbnl.us\") && PathPrefix(\"/narrative\")"
       - "traefik.http.routers.authsvc.entrypoints=web"
 

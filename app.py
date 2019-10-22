@@ -2,10 +2,16 @@ import flask
 import requests
 import docker
 import hashlib
+import os
 
 base_url = 'unix://var/run/docker.sock'
 client = docker.DockerClient(base_url=base_url)
-print("Starting up authentication/spawner service")
+try:
+    host = os.environ["hostname"]
+except KeyError:
+    host = "localhost"
+
+print("Starting up authentication/spawner service for host "+host)
 reload_msg = """
 <html>
 <head>
@@ -40,7 +46,7 @@ def hello(narrative):
             resp.set_cookie('narrative_session', session)
             labels=dict()
             labels["traefik.enable"] = "True"
-            labels["traefik.http.routers." + username + ".rule"] = "Host(\"localhost\") && PathPrefix(\"/narrative\") && HeadersRegexp(\"Cookie\",\""+cookie+"\")"
+            labels["traefik.http.routers." + username + ".rule"] = "Host(\"" + host + "\") && PathPrefix(\"/narrative\") && HeadersRegexp(\"Cookie\",\"" + cookie + "\")"
             labels["traefik.http.routers." + username + ".entrypoints"] = "web"
 #            container = client.containers.run('containous/whoami', detach=True, labels=labels, hostname=username,
 #                                              auto_remove=True, name=username, network="traefik_poc_default")

@@ -1,6 +1,4 @@
 entryPoints:
-  authenticated:
-    address: "127.0.0.1:10000"
   web:
     address: "127.0.0.1:80"
 http:
